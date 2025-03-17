@@ -6,6 +6,7 @@ from langchain_lakefs.chat_models import ChatLakeFS
 from langchain_tests.unit_tests import ChatModelUnitTests
 
 
+
 class TestChatLakeFSUnit(ChatModelUnitTests):
     @property
     def chat_model_class(self) -> Type[ChatLakeFS]:
