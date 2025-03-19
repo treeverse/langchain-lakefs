@@ -28,8 +28,8 @@ class LakeFSLoader(BaseLoader):
 
             loader = LakeFSLoader(
                 lakefs_endpoint="https://example.my-lakefs.com",
-                username="your-access-key",
-                password="your-secret-key",
+                lakefs_access_key="your-access-key",
+                lakefs_secret_key="your-secret-key",
                 repo="my-repo",
                 ref="main",
                 path="path/to/files"
@@ -72,7 +72,7 @@ class LakeFSLoader(BaseLoader):
         self.__validate_instance()
 
         presigned = self.client.storage_config.pre_sign_support
-        objects = lakefs.repository(self.repo).ref(self.ref).objects(user_metadata=True, prefix=self.path)
+        objects = lakefs.repository(self.repo, client =self.client).ref(self.ref).objects(user_metadata=True, prefix=self.path)
         documents = [
             doc
             for obj in objects  # Iterate over ObjectInfo instances
@@ -82,7 +82,8 @@ class LakeFSLoader(BaseLoader):
                 self.ref,
                 obj.path,  # Extract path
                 presigned,
-                user_metadata=obj.metadata  # Extract metadata
+                user_metadata=obj.metadata,  # Extract metadata
+                client=self.client,
             ).load()
         ]
 
@@ -109,6 +110,7 @@ class UnstructuredLakeFSLoader(UnstructuredBaseLoader):
             ref: str = "main",
             path: str = "",
             presign: bool = True,
+            client: Optional[Client] = None,
             # presign: bool = False,
             user_metadata: Optional[dict] = None,
             **unstructured_kwargs: Any,
@@ -134,6 +136,7 @@ class UnstructuredLakeFSLoader(UnstructuredBaseLoader):
         self.ref = ref
         self.path = path
         self.presign = presign
+        self.client = client
 
     def _get_metadata(self) -> dict:
         metadata = {"repo": self.repo, "ref": self.ref, "path": self.path}
@@ -152,7 +155,7 @@ class UnstructuredLakeFSLoader(UnstructuredBaseLoader):
             with tempfile.TemporaryDirectory() as temp_dir:
                 file_path = f"{temp_dir}/{self.path.split('/')[-1]}"
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                obj = lakefs.repository(self.repo).ref(self.ref).object(self.path)
+                obj = lakefs.repository(self.repo, client=self.client).ref(self.ref).object(self.path)
                 with open(file_path, mode="wb") as file:
                     file.write(obj.reader().read())
                     return partition(filename=file_path)
