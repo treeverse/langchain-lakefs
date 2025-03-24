@@ -6,7 +6,7 @@ import pytest
 import requests_mock
 from requests_mock.mocker import Mocker
 
-from langchain_community.document_loaders.lakefs import LakeFSLoader
+from langchain_lakefs.document_loaders import LakeFSLoader
 
 
 @pytest.fixture

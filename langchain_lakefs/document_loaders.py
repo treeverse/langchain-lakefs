@@ -23,8 +23,7 @@ class LakeFSLoader(BaseLoader):
 
     Instantiate:
         .. code-block:: python
-
-            from langchain_community.document_loaders import LakeFSLoader
+            from langchain_lakefs.document_loaders import LakeFSLoader
 
             loader = LakeFSLoader(
                 lakefs_endpoint="https://example.my-lakefs.com",
@@ -41,7 +40,7 @@ class LakeFSLoader(BaseLoader):
             lakefs_endpoint: str,
             lakefs_access_key: str,
             lakefs_secret_key: str,
-            repo: str,
+            repo: str = "",
             ref: str = "main",
             path: str = "",
     ):
@@ -53,17 +52,22 @@ class LakeFSLoader(BaseLoader):
         self.repo = repo
         self.ref = ref
         self.path = path
+        self.user_metadata = False
 
     def set_path(self, path: str) -> None:
+        """Set the path to load documents from."""
         self.path = path
 
     def set_ref(self, ref: str) -> None:
+        """Set the ref to load documents from."""
         self.ref = ref
 
     def set_repo(self, repo: str) -> None:
+        """Set the repository to load documents from."""
         self.repo = repo
 
     def set_user_metadata(self, user_metadata: bool) -> None:
+        """Set whether to load user metadata."""
         self.user_metadata = user_metadata
 
     def load(self) -> List[Document]:
@@ -71,8 +75,7 @@ class LakeFSLoader(BaseLoader):
 
         self.__validate_instance()
 
-        presigned = self.client.storage_config.pre_sign_support
-        objects = lakefs.repository(self.repo, client =self.client).ref(self.ref).objects(user_metadata=True, prefix=self.path)
+        objects = lakefs.repository(self.repo, client=self.client).ref(self.ref).objects(user_metadata=True, prefix=self.path)
         documents = [
             doc
             for obj in objects  # Iterate over ObjectInfo instances
@@ -81,7 +84,6 @@ class LakeFSLoader(BaseLoader):
                 self.repo,
                 self.ref,
                 obj.path,  # Extract path
-                presigned,
                 user_metadata=obj.metadata,  # Extract metadata
                 client=self.client,
             ).load()
@@ -112,7 +114,7 @@ class UnstructuredLakeFSLoader(UnstructuredBaseLoader):
             presign: bool = True,
             client: Optional[Client] = None,
             # presign: bool = False,
-            user_metadata: Optional[dict] = None,
+            user_metadata: Optional[dict[str,str]] = None,
             **unstructured_kwargs: Any,
     ):
         """Initialize UnstructuredLakeFSLoader.
@@ -138,7 +140,7 @@ class UnstructuredLakeFSLoader(UnstructuredBaseLoader):
         self.presign = presign
         self.client = client
 
-    def _get_metadata(self) -> dict:
+    def _get_metadata(self) -> dict[str, any]:
         metadata = {"repo": self.repo, "ref": self.ref, "path": self.path}
         if self.user_metadata:
             for key, value in self.user_metadata.items():
