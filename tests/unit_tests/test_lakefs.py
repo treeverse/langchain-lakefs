@@ -8,11 +8,11 @@ import lakefs_sdk
 from langchain_lakefs.document_loaders import LakeFSLoader
 
 
-
 @pytest.fixture
 def mock_get_object() -> Any:
     with patch.object(ObjectReader, "read", return_value=b'pdf content'):
         yield
+
 
 @pytest.fixture
 def mock_get_storage_id() -> Any:
@@ -62,6 +62,7 @@ def mock_list_objects() -> Any:
     with patch.object(Reference, "objects", return_value=fake_list):
         yield
 
+
 class TestLakeFSLoader(unittest.TestCase):
     lakefs_access_key: str = "lakefs_access_key"
     lakefs_secret_key: str = "lakefs_secret_key"
@@ -69,7 +70,6 @@ class TestLakeFSLoader(unittest.TestCase):
     repo: str = "repo"
     ref: str = "ref"
     path: str = "path"
-
 
     @pytest.mark.usefixtures("mock_unstructured_local", "mock_list_objects")
     def test_non_presigned_loading(self) -> None:
@@ -83,7 +83,7 @@ class TestLakeFSLoader(unittest.TestCase):
         loader.set_path(self.path)
         loader.load()
 
-    @pytest.mark.usefixtures("mock_list_objects","mock_get_object", "mock_get_storage_id", "mock_get_reader")
+    @pytest.mark.usefixtures("mock_list_objects", "mock_get_object", "mock_get_storage_id", "mock_get_reader")
     def test_load(self) -> None:
         loader = LakeFSLoader(
             lakefs_access_key="lakefs_access_key",
@@ -96,4 +96,4 @@ class TestLakeFSLoader(unittest.TestCase):
         loader.set_path(self.path)
         documents = loader.load()
         self.assertEqual(len(documents), 2)
-        self.assertEqual(len(documents[0].metadata),5)
+        self.assertEqual(len(documents[0].metadata), 5)
