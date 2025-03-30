@@ -1,3 +1,8 @@
+DOCKER=$(or $(shell which docker), $(error "Missing dependency - no docker in PATH"))
+UID_GID := $(shell id -u):$(shell id -g)
+PYTHON_IMAGE=python:3.9
+
+
 .PHONY: all format lint test tests integration_tests docker_tests help extended_tests
 
 # Default target executed when no arguments are given to make.
@@ -49,6 +54,10 @@ spell_fix:
 
 check_imports: $(shell find langchain_lakefs -name '*.py')
 	poetry run python ./scripts/check_imports.py $^
+
+package-wrapper:
+	$(DOCKER) run --user $(UID_GID) --rm -v $(shell pwd):/mnt -e HOME=/tmp/ -w /mnt/ $(PYTHON_IMAGE) /bin/bash -c \
+		"python -m pip install build --user && python -m build --sdist --wheel --outdir dist/"
 
 ######################
 # HELP
