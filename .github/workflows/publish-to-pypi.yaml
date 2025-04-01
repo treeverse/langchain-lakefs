@@ -1,4 +1,4 @@
-name: Publish Python Wrapper Client
+name: Publish
 
 on:
   workflow_dispatch:
@@ -15,11 +15,11 @@ jobs:
       with:
         python-version: '3.9'
         cache: 'pip'
-        cache-dependency-path: 'clients/python-wrapper/requirements.txt'
+        cache-dependency-path: 'requirements.txt'
 
 
     - name: Python Build and Make Package
-      run: make package-python-wrapper
+      run: make package
 
     - name: Publish Distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1

@@ -55,7 +55,7 @@ spell_fix:
 check_imports: $(shell find langchain_lakefs -name '*.py')
 	poetry run python ./scripts/check_imports.py $^
 
-package-wrapper:
+package:
 	$(DOCKER) run --user $(UID_GID) --rm -v $(shell pwd):/mnt -e HOME=/tmp/ -w /mnt/ $(PYTHON_IMAGE) /bin/bash -c \
 		"python -m pip install build --user && python -m build --sdist --wheel --outdir dist/"
 
