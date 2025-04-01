@@ -40,6 +40,7 @@ class LakeFSLoader(BaseLoader):
             lakefs_endpoint: str,
             lakefs_access_key: str,
             lakefs_secret_key: str,
+            user_metadata: bool = False,
             repo: str = "",
             ref: str = "main",
             path: str = "",
@@ -52,7 +53,7 @@ class LakeFSLoader(BaseLoader):
         self.repo = repo
         self.ref = ref
         self.path = path
-        self.user_metadata = False
+        self.user_metadata = user_metadata
 
     def set_path(self, path: str) -> None:
         """Set the path to load documents from."""
@@ -75,7 +76,7 @@ class LakeFSLoader(BaseLoader):
 
         self.__validate_instance()
 
-        objects = lakefs.repository(self.repo, client=self.client).ref(self.ref).objects(user_metadata=True, prefix=self.path)
+        objects = lakefs.repository(self.repo, client=self.client).ref(self.ref).objects(user_metadata=self.user_metadata, prefix=self.path)
         documents = [
             doc
             for obj in objects  # Iterate over ObjectInfo instances

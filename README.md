@@ -1,6 +1,13 @@
 # langchain-lakefs
 
-This package contains the LangChain integration with LakeFS
+This package provides a LangChain integration with [lakeFS](https://lakefs.io/), allowing you to load documents from lakeFS repositories into your LangChain workflows.
+
+## Features
+
+- Load documents from lakeFS repositories using the official lakeFS Python SDK
+- Support for user metadata retrieval
+- Configurable repository, reference, and path specifications
+- Integration with LangChain's document loading infrastructure
 
 ## Installation
 
@@ -8,38 +15,109 @@ This package contains the LangChain integration with LakeFS
 pip install -U langchain-lakefs
 ```
 
-And you should configure credentials by setting the following environment variables:
+## Configuration
 
-* TODO: fill this out
+You can configure the `LakeFSLoader` in three ways:
 
-## Chat Models
+### 1. Direct Initialization
 
-`ChatLakeFS` class exposes chat models from LakeFS.
+Provide the access key, secret key, and endpoint during initialization:
 
 ```python
-from langchain_lakefs import ChatLakeFS
+from langchain_lakefs.document_loaders import LakeFSLoader
 
-llm = ChatLakeFS()
-llm.invoke("Sing a ballad of LangChain.")
+lakefs_loader = LakeFSLoader(
+    lakefs_access_key='your_access_key',
+    lakefs_secret_key='your_secret_key',
+    lakefs_endpoint='https://path-to.lakefs.com',
+    repo='your_repo',
+    ref='main',
+    path='path/to/files'
+)
 ```
 
-## Embeddings
+### 2. Configuration File
 
-`LakeFSEmbeddings` class exposes embeddings from LakeFS.
+The package will automatically read credentials from the `~/.lakectl.yaml` file if available.
 
-```python
-from langchain_lakefs import LakeFSEmbeddings
+### 3. Environment Variables
 
-embeddings = LakeFSEmbeddings()
-embeddings.embed_query("What is the meaning of life?")
+Set the following environment variables to configure the loader:
+
+```bash
+export LAKECTL_CREDENTIALS_ACCESS_KEY_ID='your_access_key'
+export LAKECTL_CREDENTIALS_SECRET_ACCESS_KEY='your_secret_key'
+export LAKECTL_SERVER_ENDPOINT_URL='https://path-to.lakefs.com'
 ```
 
-## LLMs
-`LakeFSLLM` class exposes LLMs from LakeFS.
+## Usage
+
+### Document Loader
+
+The `LakeFSLoader` class allows you to load documents from lakeFS. You need to specify:
+
+- The repository (`repo`)
+- The reference (`ref`) - branch, commit or tag
+- The path to the files you want to load
+
+If you would like to load the metadata of the files, you can set the `user_metadata` parameter to `True`:
 
 ```python
-from langchain_lakefs import LakeFSLLM
+from langchain_lakefs.document_loaders import LakeFSLoader
 
-llm = LakeFSLLM()
-llm.invoke("The meaning of life is")
+# Initialize the loader
+lakefs_loader = LakeFSLoader(
+    lakefs_access_key='your_access_key',
+    lakefs_secret_key='your_secret_key',
+    lakefs_endpoint='https://path-to.lakefs.com',
+    repo='your_repo',
+    ref='main',
+    path='path/to/files',
+    user_metadata=True
+)
+
+# Load documents from lakeFS
+documents = lakefs_loader.load()
+
+# Process the documents
+for doc in documents:
+    print(f"Content: {doc.page_content}")
+    print(f"Metadata: {doc.metadata}")
+```
+
+### Modifying Loader Settings
+
+You can modify the loader settings after initialization:
+
+```python
+# Change the repository
+lakefs_loader.set_repo("another-repo")
+
+# Change the reference (branch or commit)
+lakefs_loader.set_ref("feature-branch")
+
+# Change the path
+lakefs_loader.set_path("another/path")
+
+# Toggle user metadata retrieval
+lakefs_loader.set_user_metadata(True)
+```
+
+## Examples
+
+### Loading Documents from a Specific Path
+
+```python
+from langchain_lakefs.document_loaders import LakeFSLoader
+
+loader = LakeFSLoader(
+    lakefs_endpoint="https://example.my-lakefs.com",
+    lakefs_access_key="your-access-key",
+    lakefs_secret_key="your-secret-key",
+    repo="my-repo",
+    ref="main",
+    path="data/documents"
+)
+
+documents = loader.load()
 ```
