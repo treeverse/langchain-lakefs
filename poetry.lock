@@ -425,21 +425,21 @@ aws-iam = ["boto3 (>=1.26.0)"]
 
 [[package]]
 name = "lakefs-sdk"
-version = "1.51.0"
+version = "1.60.0"
 description = "lakeFS API"
 optional = false
 python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "lakefs_sdk-1.51.0-py3-none-any.whl", hash = "sha256:0262d2cedc756b344d0a8563a30efe57525649401c03eac2941c5595f4c88950"},
-    {file = "lakefs_sdk-1.51.0.tar.gz", hash = "sha256:6ee9ad878ed9ef1807a1faa2d33f43209a6ea9d7643d096d24e7e443a7e318e0"},
+    {file = "lakefs_sdk-1.60.0-py3-none-any.whl", hash = "sha256:3cfeca370a788c78a13f876d3f3ec8926ed7b69678724e9d24ac13cadb3729fb"},
+    {file = "lakefs_sdk-1.60.0.tar.gz", hash = "sha256:da46705c813640490483e2fc1c0e73f544c6e7724302430795ae5773b7cfc97d"},
 ]
 
 [package.dependencies]
 aenum = "*"
 pydantic = ">=1.10.5"
 python-dateutil = "*"
-urllib3 = ">=1.25.3,<2.1.0"
+urllib3 = ">=1.25.3,<3.0.0"
 
 [[package]]
 name = "langchain-core"
@@ -1295,19 +1295,19 @@ files = [
 
 [[package]]
 name = "urllib3"
-version = "2.0.7"
+version = "2.5.0"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["main", "test"]
 files = [
-    {file = "urllib3-2.0.7-py3-none-any.whl", hash = "sha256:fdb6d215c776278489906c2f8916e6e7d4f5a9b602ccbcfdf7f016fc8da0596e"},
-    {file = "urllib3-2.0.7.tar.gz", hash = "sha256:c97dfde1f7bd43a71c8d2a58e369e9b2bf692d1334ea9f9cae55add7d0dd0f84"},
+    {file = "urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc"},
+    {file = "urllib3-2.5.0.tar.gz", hash = "sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760"},
 ]
 
 [package.extras]
 brotli = ["brotli (>=1.0.9) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=0.8.0) ; platform_python_implementation != \"CPython\""]
-secure = ["certifi", "cryptography (>=1.9)", "idna (>=2.0.0)", "pyopenssl (>=17.1.0)", "urllib3-secure-extra"]
+h2 = ["h2 (>=4,<5)"]
 socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
