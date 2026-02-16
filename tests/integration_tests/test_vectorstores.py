@@ -1,9 +1,10 @@
 from typing import Generator
 
 import pytest
-from langchain_lakefs.vectorstores import LakeFSVectorStore
 from langchain_core.vectorstores import VectorStore
 from langchain_tests.integration_tests import VectorStoreIntegrationTests
+
+from langchain_lakefs.vectorstores import LakeFSVectorStore
 
 
 class TestLakeFSVectorStore(VectorStoreIntegrationTests):

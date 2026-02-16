@@ -1,9 +1,10 @@
 from typing import Type
 
-from langchain_lakefs.retrievers import LakeFSRetriever
 from langchain_tests.integration_tests import (
     RetrieversIntegrationTests,
 )
+
+from langchain_lakefs.retrievers import LakeFSRetriever
 
 
 class TestLakeFSRetriever(RetrieversIntegrationTests):

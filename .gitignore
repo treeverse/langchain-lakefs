@@ -1,1 +1,10 @@
-__pycache__
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.ropeproject/
+.benchmarks/

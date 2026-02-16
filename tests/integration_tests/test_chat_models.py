@@ -2,8 +2,9 @@
 
 from typing import Type
 
-from langchain_lakefs.chat_models import ChatLakeFS
 from langchain_tests.integration_tests import ChatModelIntegrationTests
+
+from langchain_lakefs.chat_models import ChatLakeFS
 
 
 class TestChatParrotLinkIntegration(ChatModelIntegrationTests):

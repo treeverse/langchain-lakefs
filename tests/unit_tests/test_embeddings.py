@@ -2,8 +2,9 @@
 
 from typing import Type
 
-from langchain_lakefs.embeddings import LakeFSEmbeddings
 from langchain_tests.unit_tests import EmbeddingsUnitTests
+
+from langchain_lakefs.embeddings import LakeFSEmbeddings
 
 
 class TestParrotLinkEmbeddingsUnit(EmbeddingsUnitTests):
