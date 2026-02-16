@@ -3,10 +3,21 @@ UID_GID := $(shell id -u):$(shell id -g)
 PYTHON_IMAGE=python:3.9
 
 
-.PHONY: all format lint test tests integration_tests docker_tests help extended_tests
+.PHONY: all check format lint test tests integration_tests spell_check spell_fix help package
 
 # Default target executed when no arguments are given to make.
 all: help
+
+######################
+# VALIDATION
+######################
+
+check:
+	poetry check --lock
+
+######################
+# TESTING
+######################
 
 # Define a variable for the test file path.
 TEST_FILE ?= tests/unit_tests/
@@ -55,6 +66,10 @@ spell_fix:
 check_imports: $(shell find langchain_lakefs -name '*.py')
 	poetry run python ./scripts/check_imports.py $^
 
+######################
+# PACKAGING
+######################
+
 package:
 	$(DOCKER) run --user $(UID_GID) --rm -v $(shell pwd):/mnt -e HOME=/tmp/ -w /mnt/ $(PYTHON_IMAGE) /bin/bash -c \
 		"python -m pip install build --user && python -m build --sdist --wheel --outdir dist/"
@@ -65,9 +80,11 @@ package:
 
 help:
 	@echo '----'
-	@echo 'check_imports				- check imports'
+	@echo 'check                        - validate pyproject.toml and lock file'
+	@echo 'check_imports                - check imports'
 	@echo 'format                       - run code formatters'
 	@echo 'lint                         - run linters'
+	@echo 'spell_check                  - run codespell'
 	@echo 'test                         - run unit tests'
 	@echo 'tests                        - run unit tests'
 	@echo 'test TEST_FILE=<test_file>   - run all tests in file'

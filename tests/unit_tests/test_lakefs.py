@@ -2,34 +2,39 @@ import unittest
 from typing import Any
 from unittest.mock import patch
 
-import pytest
-from lakefs import ObjectReader, StoredObject, Reference
 import lakefs_sdk
+import pytest
+from lakefs import ObjectReader, Reference, StoredObject
+
 from langchain_lakefs.document_loaders import LakeFSLoader
 
 
 @pytest.fixture
 def mock_get_object() -> Any:
-    with patch.object(ObjectReader, "read", return_value=b'pdf content'):
+    with patch.object(ObjectReader, "read", return_value=b"pdf content"):
         yield
 
 
 @pytest.fixture
 def mock_get_storage_id() -> Any:
-    with patch.object(StoredObject, "storage_id", return_value=''):
+    with patch.object(StoredObject, "storage_id", return_value=""):
         yield
 
 
 @pytest.fixture
 def mock_get_reader() -> Any:
-    with patch.object(StoredObject, "reader", return_value=ObjectReader(None, mode='r', pre_sign=True, client=None)):
+    with patch.object(
+        StoredObject,
+        "reader",
+        return_value=ObjectReader(None, mode="r", pre_sign=True, client=None),
+    ):
         yield
 
 
 @pytest.fixture
 def mock_unstructured_local() -> Any:
     with patch(
-            "langchain_lakefs.document_loaders.UnstructuredLakeFSLoader"
+        "langchain_lakefs.document_loaders.UnstructuredLakeFSLoader"
     ) as mock_unstructured_lakefs:
         mock_unstructured_lakefs.return_value.load.return_value = [
             ("text content", "pdf content")
@@ -83,7 +88,9 @@ class TestLakeFSLoader(unittest.TestCase):
         loader.set_path(self.path)
         loader.load()
 
-    @pytest.mark.usefixtures("mock_list_objects", "mock_get_object", "mock_get_storage_id", "mock_get_reader")
+    @pytest.mark.usefixtures(
+        "mock_list_objects", "mock_get_object", "mock_get_storage_id", "mock_get_reader"
+    )
     def test_load(self) -> None:
         loader = LakeFSLoader(
             lakefs_access_key="lakefs_access_key",

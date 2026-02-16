@@ -1,12 +1,14 @@
 """LakeFS document loader using the official lakeFS Python SDK."""
-import tempfile
+
 import os
-from typing import List, Optional, Any
+import tempfile
+from typing import Any, List, Optional
+
 import lakefs.branch
 from lakefs.client import Client
+from langchain_community.document_loaders.unstructured import UnstructuredBaseLoader
 from langchain_core.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
-from langchain_community.document_loaders.unstructured import UnstructuredBaseLoader
 from unstructured.partition.auto import partition
 
 
@@ -36,19 +38,17 @@ class LakeFSLoader(BaseLoader):
     """
 
     def __init__(
-            self,
-            lakefs_endpoint: str,
-            lakefs_access_key: str,
-            lakefs_secret_key: str,
-            user_metadata: bool = False,
-            repo: str = "",
-            ref: str = "main",
-            path: str = "",
+        self,
+        lakefs_endpoint: str,
+        lakefs_access_key: str,
+        lakefs_secret_key: str,
+        user_metadata: bool = False,
+        repo: str = "",
+        ref: str = "main",
+        path: str = "",
     ):
         self.client = Client(
-            host=lakefs_endpoint,
-            username=lakefs_access_key,
-            password=lakefs_secret_key
+            host=lakefs_endpoint, username=lakefs_access_key, password=lakefs_secret_key
         )
         self.repo = repo
         self.ref = ref
@@ -76,7 +76,10 @@ class LakeFSLoader(BaseLoader):
 
         self.__validate_instance()
 
-        objects = lakefs.repository(self.repo, client=self.client).ref(self.ref).objects(user_metadata=self.user_metadata, prefix=self.path)
+        repo = lakefs.repository(self.repo, client=self.client)
+        objects = repo.ref(self.ref).objects(
+            user_metadata=self.user_metadata, prefix=self.path
+        )
         documents = [
             doc
             for obj in objects  # Iterate over ObjectInfo instances
@@ -107,16 +110,16 @@ class UnstructuredLakeFSLoader(UnstructuredBaseLoader):
     """Load from `lakeFS` as unstructured data."""
 
     def __init__(
-            self,
-            url: str,
-            repo: str,
-            ref: str = "main",
-            path: str = "",
-            presign: bool = True,
-            client: Optional[Client] = None,
-            # presign: bool = False,
-            user_metadata: Optional[dict[str,str]] = None,
-            **unstructured_kwargs: Any,
+        self,
+        url: str,
+        repo: str,
+        ref: str = "main",
+        path: str = "",
+        presign: bool = True,
+        client: Optional[Client] = None,
+        # presign: bool = False,
+        user_metadata: Optional[dict[str, str]] = None,
+        **unstructured_kwargs: Any,
     ):
         """Initialize UnstructuredLakeFSLoader.
 
@@ -141,7 +144,7 @@ class UnstructuredLakeFSLoader(UnstructuredBaseLoader):
         self.presign = presign
         self.client = client
 
-    def _get_metadata(self) -> dict[str, any]:
+    def _get_metadata(self) -> dict[str, Any]:
         metadata = {"repo": self.repo, "ref": self.ref, "path": self.path}
         if self.user_metadata:
             for key, value in self.user_metadata.items():
@@ -152,13 +155,14 @@ class UnstructuredLakeFSLoader(UnstructuredBaseLoader):
     def _get_elements(self) -> List:
         local_prefix = "local://"
         if self.url.startswith(local_prefix):
-            local_path = self.url[len(local_prefix):]
+            local_path = self.url[len(local_prefix) :]
             return partition(filename=local_path)
         else:
             with tempfile.TemporaryDirectory() as temp_dir:
                 file_path = f"{temp_dir}/{self.path.split('/')[-1]}"
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                obj = lakefs.repository(self.repo, client=self.client).ref(self.ref).object(self.path)
+                repo = lakefs.repository(self.repo, client=self.client)
+                obj = repo.ref(self.ref).object(self.path)
                 with open(file_path, mode="wb") as file:
                     file.write(obj.reader().read())
                     return partition(filename=file_path)

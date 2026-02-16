@@ -2,8 +2,9 @@
 
 from typing import Type
 
-from langchain_lakefs.chat_models import ChatLakeFS
 from langchain_tests.unit_tests import ChatModelUnitTests
+
+from langchain_lakefs.chat_models import ChatLakeFS
 
 
 class TestChatLakeFSUnit(ChatModelUnitTests):

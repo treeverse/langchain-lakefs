@@ -1,7 +1,8 @@
 from typing import Type
 
-from langchain_lakefs.tools import LakeFSTool
 from langchain_tests.unit_tests import ToolsUnitTests
+
+from langchain_lakefs.tools import LakeFSTool
 
 
 class TestParrotMultiplyToolUnit(ToolsUnitTests):
