@@ -7,6 +7,7 @@ suite can be re-run repeatedly against a long-lived lakeFS instance.
 """
 
 import os
+from concurrent.futures import ThreadPoolExecutor
 from typing import Iterator
 
 import lakefs
@@ -15,6 +16,8 @@ from lakefs.client import Client
 
 REPO_NAME = "langchain-lakefs-it"
 FEATURE_BRANCH = "feature"
+BULK_PREFIX = "bulk/"
+BULK_COUNT = 1500
 
 
 @pytest.fixture(scope="session")
@@ -86,3 +89,29 @@ def seeded_repo(lakefs_client: Client, lakefs_storage_namespace: str) -> Iterato
         feature.commit(message="seed feature branch")
 
     yield REPO_NAME
+
+
+@pytest.fixture(scope="session")
+def bulk_prefix(seeded_repo: str, lakefs_client: Client) -> str:
+    """Seed ``BULK_COUNT`` tiny files under ``BULK_PREFIX`` on ``main``.
+
+    Used to exercise paginated listings: ``BULK_COUNT`` exceeds the lakeFS
+    list-objects page size (default 1000), so a correct loader must
+    iterate across pages to return every object.
+
+    The fixture is idempotent: if the last expected file already exists,
+    the seed is skipped. Uploads run concurrently to keep first-run time
+    reasonable.
+    """
+    repo = lakefs.Repository(seeded_repo, client=lakefs_client)
+    main = repo.branch("main")
+    last_path = f"{BULK_PREFIX}{BULK_COUNT - 1:08d}.txt"
+    if not main.object(last_path).exists():
+
+        def _upload(i: int) -> None:
+            main.object(f"{BULK_PREFIX}{i:08d}.txt").upload(data=b"x")
+
+        with ThreadPoolExecutor(max_workers=16) as pool:
+            list(pool.map(_upload, range(BULK_COUNT)))
+        main.commit(message=f"seed {BULK_COUNT} files under {BULK_PREFIX}")
+    return BULK_PREFIX

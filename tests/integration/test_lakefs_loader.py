@@ -126,6 +126,28 @@ def test_load_empty_prefix_returns_all(
     assert len(documents) == 3
 
 
+def test_load_paginated_listing(
+    seeded_repo: str,
+    bulk_prefix: str,
+    lakefs_endpoint: str,
+    lakefs_access_key: str,
+    lakefs_secret_key: str,
+) -> None:
+    """All objects are returned even when the prefix exceeds one page."""
+    loader = _make_loader(
+        lakefs_endpoint,
+        lakefs_access_key,
+        lakefs_secret_key,
+        seeded_repo,
+        path=bulk_prefix,
+    )
+    documents = loader.load()
+    paths = _paths(documents)
+    assert len(paths) == 1500
+    assert f"{bulk_prefix}00000000.txt" in paths
+    assert f"{bulk_prefix}00001499.txt" in paths
+
+
 def test_validation_missing_repo(
     lakefs_endpoint: str,
     lakefs_access_key: str,
