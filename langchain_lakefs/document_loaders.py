@@ -35,6 +35,12 @@ class LakeFSLoader(BaseLoader):
                 ref="main",
                 path="path/to/files"
             )
+
+    Supported blockstores:
+        Only production-grade object stores are supported (S3, GCS, Azure
+        Blob, or S3-compatible). The lakeFS ``local`` blockstore is not
+        supported because the loader cannot read its on-disk paths from a
+        non-co-located host.
     """
 
     def __init__(
