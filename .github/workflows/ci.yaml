@@ -64,9 +64,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     env:
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-      AWS_DEFAULT_REGION: us-east-1
+      KUMO_IMAGE: ghcr.io/sivchari/kumo:latest
       KUMO_ENDPOINT: http://localhost:4566
       LAKEFS_BUCKET: lakefs-it-bucket
     services:
@@ -102,15 +100,22 @@ jobs:
           cache: poetry
       - name: Install dependencies
         run: poetry install --with test
-      - name: Create S3 bucket on kumo
+      - name: Wait for kumo to be ready
         run: |
           for i in {1..30}; do
-            if aws s3 ls --endpoint-url "$KUMO_ENDPOINT" >/dev/null 2>&1; then
-              break
+            if curl -s "$KUMO_ENDPOINT/health" | grep -q "healthy"; then
+              echo "kumo is ready"
+              exit 0
             fi
-            sleep 2
+            echo "Waiting for kumo..."
+            sleep 1
           done
-          aws s3 mb "s3://$LAKEFS_BUCKET" --endpoint-url "$KUMO_ENDPOINT"
+          echo "kumo failed to start"
+          exit 1
+      - name: Create S3 bucket on kumo
+        run: |
+          docker run --rm --network=host "$KUMO_IMAGE" \
+            s3 mb "s3://$LAKEFS_BUCKET" --endpoint-url "$KUMO_ENDPOINT"
       - name: Wait for lakeFS
         run: |
           for i in {1..30}; do
