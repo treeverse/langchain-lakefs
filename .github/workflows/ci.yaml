@@ -59,3 +59,76 @@ jobs:
         run: poetry install --with codespell
       - name: Spell check
         run: make spell_check
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    env:
+      KUMO_IMAGE: ghcr.io/sivchari/kumo:0.16.1
+      KUMO_ENDPOINT: http://localhost:4566
+      LAKEFS_BUCKET: lakefs-it-bucket
+    services:
+      kumo:
+        image: ghcr.io/sivchari/kumo:0.16.1
+        ports:
+          - 4566:4566
+      lakefs:
+        image: treeverse/lakefs:1
+        ports:
+          - 8000:8000
+        env:
+          LAKEFS_INSTALLATION_USER_NAME: admin
+          LAKEFS_INSTALLATION_ACCESS_KEY_ID: AKIAIOSFOLQUICKSTART
+          LAKEFS_INSTALLATION_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+          LAKEFS_DATABASE_TYPE: local
+          LAKEFS_BLOCKSTORE_TYPE: s3
+          LAKEFS_BLOCKSTORE_S3_FORCE_PATH_STYLE: "true"
+          LAKEFS_BLOCKSTORE_S3_ENDPOINT: http://kumo:4566
+          LAKEFS_BLOCKSTORE_S3_PRE_SIGNED_ENDPOINT: http://localhost:4566
+          LAKEFS_BLOCKSTORE_S3_REGION: us-east-1
+          LAKEFS_BLOCKSTORE_S3_DISCOVER_BUCKET_REGION: "false"
+          LAKEFS_BLOCKSTORE_S3_CREDENTIALS_ACCESS_KEY_ID: test
+          LAKEFS_BLOCKSTORE_S3_CREDENTIALS_SECRET_ACCESS_KEY: test
+          LAKEFS_AUTH_ENCRYPT_SECRET_KEY: thisisagreatsecretthatyoushouldreallychange
+    steps:
+      - uses: actions/checkout@v6
+      - run: pipx install poetry
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: poetry
+      - name: Install dependencies
+        run: poetry install --with test
+      - name: Wait for kumo to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s "$KUMO_ENDPOINT/health" | grep -q "healthy"; then
+              echo "kumo is ready"
+              exit 0
+            fi
+            echo "Waiting for kumo..."
+            sleep 1
+          done
+          echo "kumo failed to start"
+          exit 1
+      - name: Create S3 bucket on kumo
+        run: |
+          docker run --rm --network=host "$KUMO_IMAGE" \
+            s3 mb "s3://$LAKEFS_BUCKET" --endpoint-url "$KUMO_ENDPOINT"
+      - name: Wait for lakeFS
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:8000/_health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "lakeFS did not become healthy" >&2
+          exit 1
+      - name: Run integration tests
+        env:
+          LAKECTL_SERVER_ENDPOINT_URL: http://localhost:8000
+          LAKECTL_CREDENTIALS_ACCESS_KEY_ID: AKIAIOSFOLQUICKSTART
+          LAKECTL_CREDENTIALS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+          LAKEFS_STORAGE_NAMESPACE: s3://lakefs-it-bucket/langchain-lakefs-it
+        run: make integration_tests
