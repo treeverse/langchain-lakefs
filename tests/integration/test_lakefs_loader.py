@@ -76,10 +76,13 @@ def test_load_from_branch(
     lakefs_secret_key: str,
 ) -> None:
     loader = _make_loader(
-        lakefs_endpoint, lakefs_access_key, lakefs_secret_key, seeded_repo
+        lakefs_endpoint,
+        lakefs_access_key,
+        lakefs_secret_key,
+        seeded_repo,
+        ref="feature",
     )
 
-    loader.set_ref("feature")
     feature_paths = _paths(loader.load())
     assert "data/feature-only.txt" in feature_paths
 
